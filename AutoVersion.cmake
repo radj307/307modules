@@ -90,7 +90,7 @@ function(create_version_header _name _major _minor _patch)
 	elseif(EXISTS "${CMAKE_SOURCE_DIR}/cmake/modules/version.h.in")
 		set(VERSION_IN_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/version.h.in")
 	else()
-		message(FATAL_ERROR "AutoVersion.cmake cannot locate a valid version.h.in template file! You can specify the path to the target file as an additional parameter to CREATE_VERSION_HEADER if it isn't located at the default path. (${CMAKE_CURRENT_SOURCE_DIR}/cmake/307modules/version.h.in)")
+		message(FATAL_ERROR "AutoVersion.cmake cannot locate a valid version.h.in template file! You can specify the path to the target file as an additional parameter to CREATE_VERSION_HEADER if it isn't located at the default path.")
 	endif()
 	configure_file("${VERSION_IN_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
 	# Unset temporary cache variables
