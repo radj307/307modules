@@ -70,7 +70,7 @@ endfunction()
 # @param _minor		Minor version number
 # @param _patch		Patch version number
 function(MAKE_VERSION _out_var _major _minor _patch)
-	set(${_out_ver} "${_major}.${_minor}.${_patch}" CACHE STRING "Full version string." FORCE)
+	set(${_out_var} "${_major}.${_minor}.${_patch}" CACHE STRING "Full version string." FORCE)
 endfunction()
 
 #### CREATE_VERSION_HEADER ####
