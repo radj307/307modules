@@ -10,11 +10,14 @@
 #
 # (optional):
 #
-# 3.	Set the version of your project in CMake to support CMake's packaging functionality
+# 3.	Make a single version variable that is compatible with CMake's VERSION arguments:
 #			MAKE_VERSION(FULL_VERSION ${VERSION_MAJOR} ${VERSION_MINOR} ${VERSION_PATCH})
 #
 # 4.	Create a version header containing C++ preprocessor definitions to support project-wide versioning from a single source.
 #			CREATE_VERSION_HEADER(<TARGET>, ${VERSION_MAJOR} ${VERSION_MINOR} ${VERSION_PATCH})
+#		(Make sure you add "*/version.h" to your .gitignore)
+#		This creates the following preprocessor definitions:
+#			TARGET_MAJOR_VERSION
 #
 cmake_minimum_required(VERSION 3.19)
 
@@ -32,7 +35,7 @@ function(GET_VERSION _working_dir _out_major _out_minor _out_patch)
 			"git" 
 			"describe" 
 			"--tags"
-		WORKING_DIRECTORY ${_working_dir}
+		WORKING_DIRECTORY "${_working_dir}"
 		OUTPUT_VARIABLE VERSION_TAG
 	)
 
