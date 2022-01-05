@@ -19,7 +19,7 @@
 #		This creates the following preprocessor definitions:
 #			TARGET_MAJOR_VERSION
 #
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.20)
 
 set(AUTOVERSION_PARSE_REGEX "^[vV]*([0-9]+)\.([0-9]+)\.([0-9]+).+" CACHE STRING "Used by the AutoVersion PARSE_VERSION_STRING function to parse a git tag into a library version, by using capture groups. (1: Major Version ; 2: Minor Version ; 3: Patch Version ; 4: SHA1). All groups except for group 1 should be optional." FORCE)
 
@@ -89,25 +89,9 @@ function(CREATE_VERSION_HEADER _name _major _minor _patch)
 	set(IN_MINOR ${_minor} CACHE STRING "" FORCE)
 	set(IN_PATCH ${_patch} CACHE STRING "" FORCE)
 	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
-	if (${ARGC} GREATER 4)
-		foreach(version_file_path IN LISTS ARGN)
-			if (EXISTS "${version_file_path}")
-				set(VERSION_IN_PATH "${version_file_path}")
-				break()
-			endif()
-		endforeach()
-	elseif(EXISTS "${CMAKE_SOURCE_DIR}/cmake/307modules/version.h.in")
-		set(VERSION_IN_PATH "${CMAKE_SOURCE_DIR}/cmake/307modules/input/version.h.in")
-	elseif(EXISTS "${CMAKE_SOURCE_DIR}/307modules/input/version.h.in")
-		set(VERSION_IN_PATH "${CMAKE_SOURCE_DIR}/307modules/input/version.h.in")
-	elseif(EXISTS "${CMAKE_SOURCE_DIR}/cmake/modules/version.h.in")
-		set(VERSION_IN_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/version.h.in")
-	elseif(EXISTS "${CMAKE_SOURCE_DIR}/cmake/input/version.h.in")
-		set(VERSION_IN_PATH "${CMAKE_SOURCE_DIR}/cmake/input/version.h.in")
-	else()
-		message(FATAL_ERROR "AutoVersion.cmake cannot locate a valid version.h.in template file! You can specify the path to the target file as an additional parameter to CREATE_VERSION_HEADER if it isn't located at the default path.")
-	endif()
-	configure_file("${VERSION_IN_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
+	include(InputFinder)
+	FIND_INPUT_FILE(TEMPLATE_FILEPATH "version.h.in" REQUIRED ${ARGN})
+	configure_file("${TEMPLATE_FILEPATH}" "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
 	# Unset temporary cache variables
 	unset(IN_NAME CACHE)
 	unset(IN_MAJOR CACHE)
