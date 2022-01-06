@@ -1,4 +1,3 @@
-# @PACKAGING_TARGET_NAME@/@PACKAGING_TARGET_NAME@-config.cmake
 cmake_minimum_required(VERSION 3.19)
 
 set(@PACKAGING_TARGET_NAME@_known_comps static)
