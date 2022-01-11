@@ -116,3 +116,12 @@ function(INSTALL_PACKAGE _target)
 	# Set the <name>_ROOT environment variable
 	set(ENV{${_target}_ROOT} "${${_target}_CONFIG_INSTALL_DIR}")
 endfunction()
+
+function(INSTALL_EXECUTABLE _target _destination)
+	message(STATUS "Installing executable: \"${_target}\" in destination directory: \"${_destination}\"")
+	install(
+		TARGETS ${_target}
+		RUNTIME
+		DESTINATION "${_destination}"
+	)
+endfunction()
