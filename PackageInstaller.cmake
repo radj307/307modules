@@ -13,6 +13,12 @@ function(GENERATE_PACKAGING _target)
 	# Export Targets
 	file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/export.h") # remove any existing export header
 	generate_export_header(${_target} EXPORT_FILE_NAME "${CMAKE_CURRENT_BINARY_DIR}/export.h")
+	target_compile_definitions(${_target} PUBLIC
+		"$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:${_target}_STATIC_DEFINE>"
+	)
+	target_include_directories(${_target} PUBLIC
+		"$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
+	)
 	# Create <name>Config.cmake from the template
 	set(PACKAGING_TARGET_NAME "${_target}" CACHE STRING "Temporary variable used by the GENERATE_PACKAGING function." FORCE)
 	set(PACKAGING_TARGET_CONF "${CMAKE_CURRENT_BINARY_DIR}/${_target}Config.cmake")
