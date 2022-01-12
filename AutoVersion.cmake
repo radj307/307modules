@@ -21,50 +21,83 @@
 #
 cmake_minimum_required(VERSION 3.20)
 
-set(AUTOVERSION_PARSE_REGEX "^[vV]*([0-9]+)\.([0-9]+)\.([0-9]+).+" CACHE STRING "Used by the AutoVersion PARSE_VERSION_STRING function to parse a git tag into a library version, by using capture groups. (1: Major Version ; 2: Minor Version ; 3: Patch Version ; 4: SHA1). All groups except for group 1 should be optional." FORCE)
+set(AUTOVERSION_REGEX_PREFIX "[vV]" CACHE STRING "Characters to ignore at the start of the git tag string.")
+set(AUTOVERSION_REGEX_SEPARATOR "[\.]" CACHE STRING "Character to use as the separator for each version number.")
+set(AUTOVERSION_REGEX_NUMBER "[0-9]+" CACHE STRING "Regex to detect each version number")
+
+set(AUTOVERSION_PARSE_REGEX 
+	"^${AUTOVERSION_REGEX_PREFIX}*((${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SEPARATOR}*)+.*"
+	CACHE STRING
+	"Used by AutoVersion.cmake functions to parse the most recent git tag for a version number."
+)
+
+#### GET_GIT_TAG(<REPO_DIR> <OUT_VAR>) ####
+# @brief				Call "git describe --tags" from the given directory, and set ${_out_var} to the result.
+# @param _working_dir	The root repository directory to call the git describe command in.
+# @param _out_var		The name of a variable to set with the result of the command.
+macro(AV_GET_GIT_TAG _working_dir _out_var)
+	execute_process(
+		COMMAND
+			"git"
+			"describe"
+			"--tags"
+		WORKING_DIRECTORY "${_working_dir}"
+		OUTPUT_VARIABLE ${_out_var}
+	)
+endmacro()
+
+#### REGEX_PARSE_VERSION(<GIT_TAG> <OUT_VAR>[...])
+# @brief			Parses a git tag into any number of version number sections.
+#					At least one output variable name is required.
+#					Any number of output vars can be included, example:
+#                   REGEX_PARSE_VERSION("1.2.3" major minor patch)
+#						major = 1
+#						minor = 2
+#						patch = 3
+# @param _tag_raw	The raw git tag string to parse.
+function(GET_VERSION _tag_raw)
+	if (${ARGC} LESS_EQUAL 1)
+		message(FATAL_ERROR "No output variables specified for AV_PARSE_VERSION()!\nARGN: \"${ARGN}\"")
+	endif()
+	math(EXPR index "0")
+	foreach(_out_var IN LISTS ARGN)
+		math(EXPR index "${index} + 1")
+		string(REGEX REPLACE "${AUTOVERSION_PARSE_REGEX}" "\\${index}" "${_out_var}" "${_tag_raw}")
+	endforeach()
+endfunction()
 
 #### GET_VERSION ####
-# @brief				Retrieve and parse the result of calling `git describe --tags --dirty=-d`
+# @brief				Retrieve and parse the result of calling `git describe --tags`
 # @param _out_major		Variable name to store the major version number
 # @param _out_minor		Variable name to store the minor version number
 # @param _out_patch		Variable name to store the patch version number
-function(GET_VERSION _working_dir _out_major _out_minor _out_patch)
+#function(GET_VERSION _working_dir _out_major _out_minor _out_patch)
 	# set the "VERSION_TAG" cache variable to the result of `git describe ${AUTOVERSION_GIT_DESCRIBE_ARGS}` in CMAKE_SOURCE_DIR
-	execute_process(
-		COMMAND 
-			"git" 
-			"describe" 
-			"--tags"
-		WORKING_DIRECTORY "${_working_dir}"
-		OUTPUT_VARIABLE VERSION_TAG
-	)
+#	AV_GET_GIT_TAG("${_working_dir}" "VERSION_TAG")
 
-	if (VERSION_TAG STREQUAL "") # Don't use ${} expansion here, if statements work without them and this may cause a comparison failure
-		message(STATUS "No git tags found, skipping AutoVersioning.")
-		return()
-	endif()
+#	if ("${VERSION_TAG}" STREQUAL "") # Don't use ${} expansion here, if statements work without them and this may cause a comparison failure
+#		message(WARNING "No git tags found, skipping AutoVersioning.")
+#		return()
+#	endif()
 
-	# Parse the version string using the provided regular expression
-	string(REGEX REPLACE ${AUTOVERSION_PARSE_REGEX} "\\1" _MAJOR ${VERSION_TAG}) # get Major
-	string(REGEX REPLACE ${AUTOVERSION_PARSE_REGEX} "\\2" _MINOR ${VERSION_TAG}) # get Minor
-	string(REGEX REPLACE ${AUTOVERSION_PARSE_REGEX} "\\3" _PATCH ${VERSION_TAG}) # get Patch
+#	AV_PARSE_VERSION("${VERSION_TAG}" _MAJOR _MINOR _PATCH)
 
 	# Print a status message showing the parsed values
-	message(STATUS "Successfully parsed version number from git tags.")
-	message(STATUS "  MAJOR: ${_MAJOR}")
-	message(STATUS "  MAJOR: ${_MINOR}")
-	message(STATUS "  MAJOR: ${_PATCH}")
+#	message(STATUS "Successfully parsed version number from git tags.")
+#	message(STATUS "  MAJOR: ${_MAJOR}")
+#	message(STATUS "  MAJOR: ${_MINOR}")
+#	message(STATUS "  MAJOR: ${_PATCH}")
 
 	# Set the provided output variable names to the parsed version numbers
-	set(${_out_major} "${_MAJOR}" CACHE STRING "(SEMVER) Major Version portion of the current git tag" FORCE)
-	set(${_out_minor} "${_MINOR}" CACHE STRING "(SEMVER) Minor Version portion of the current git tag" FORCE)
-	set(${_out_patch} "${_PATCH}" CACHE STRING "(SEMVER) Patch Version portion of the current git tag" FORCE)
+#	set(${_out_major} "${_MAJOR}" CACHE STRING "(SEMVER) Major Version portion of the current git tag" FORCE)
+#	set(${_out_minor} "${_MINOR}" CACHE STRING "(SEMVER) Minor Version portion of the current git tag" FORCE)
+#	set(${_out_patch} "${_PATCH}" CACHE STRING "(SEMVER) Patch Version portion of the current git tag" FORCE)
 	
 	# Cleanup
-	unset(_MAJOR CACHE)
-	unset(_MINOR CACHE)
-	unset(_PATCH CACHE)
-endfunction()
+#	unset(_MAJOR CACHE)
+#	unset(_MINOR CACHE)
+#	unset(_PATCH CACHE)
+#endfunction()
 
 #### MAKE_VERSION ####
 # @brief			Concatenate version strings into a single version string in the format "${MAJOR}.${MINOR}.${PATCH}${EXTRA}"
@@ -72,8 +105,8 @@ endfunction()
 # @param _major		Major version number
 # @param _minor		Minor version number
 # @param _patch		Patch version number
-function(MAKE_VERSION _out_var _major _minor _patch)
-	set(${_out_var} "${_major}.${_minor}.${_patch}" CACHE STRING "Full version string." FORCE)
+function(MAKE_VERSION _out_var)
+	list(JOIN "${ARGN}" "." ${_out_var})
 endfunction()
 
 #### CREATE_VERSION_HEADER ####
@@ -84,14 +117,18 @@ endfunction()
 # @param _minor			Minor version number
 # @param _patch			Patch version number
 function(CREATE_VERSION_HEADER _name _major _minor _patch)
+	# Set temporary variables
 	set(IN_NAME ${_name} CACHE STRING "" FORCE)
 	set(IN_MAJOR ${_major} CACHE STRING "" FORCE)
 	set(IN_MINOR ${_minor} CACHE STRING "" FORCE)
 	set(IN_PATCH ${_patch} CACHE STRING "" FORCE)
+
+	# Remove previous
 	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
-	include(InputFinder)
-	FIND_INPUT_FILE(TEMPLATE_FILEPATH "version.h.in" REQUIRED ${ARGN})
-	configure_file("${TEMPLATE_FILEPATH}" "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
+
+	# Configure file
+	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
+
 	# Unset temporary cache variables
 	unset(IN_NAME CACHE)
 	unset(IN_MAJOR CACHE)
