@@ -63,6 +63,7 @@ function(GET_VERSION _tag_raw)
 	foreach(_out_var IN LISTS ARGN)
 		math(EXPR index "${index} + 1")
 		string(REGEX REPLACE "${AUTOVERSION_PARSE_REGEX}" "\\${index}" "${_out_var}" "${_tag_raw}")
+		message(STATUS "Set ${_out_var}: \"${${_out_var}}\"")
 	endforeach()
 endfunction()
 
@@ -106,6 +107,9 @@ endfunction()
 # @param _minor		Minor version number
 # @param _patch		Patch version number
 function(MAKE_VERSION _out_var)
+	if (${ARGC} EQUAL 0)
+		message(FATAL_ERROR "Invalid Version Number List: \"${ARGN}\"")
+	endif()
 	list(JOIN "${ARGN}" "." ${_out_var})
 endfunction()
 
