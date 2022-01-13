@@ -21,12 +21,13 @@
 #
 cmake_minimum_required(VERSION 3.20)
 
-set(AUTOVERSION_REGEX_PREFIX "[vV]" CACHE STRING "Characters to ignore at the start of the git tag string.")
-set(AUTOVERSION_REGEX_SEPARATOR "[\.]" CACHE STRING "Character to use as the separator for each version number.")
-set(AUTOVERSION_REGEX_NUMBER "[0-9]+" CACHE STRING "Regex to detect each version number")
+set(AUTOVERSION_REGEX_PREFIX "[vV]*" CACHE STRING "Regex to match git tag prefixes that aren't part of the version number. (These are discarded)")
+set(AUTOVERSION_REGEX_SUFFIX "[\r\n\.]*" CACHE STRING "Regex to match git tag suffixes that aren't part of the version number. (These are discarded)")
+set(AUTOVERSION_REGEX_SEPARATOR "[\.-]*" CACHE STRING "Regex to match version number separators. (These are discarded)")
+set(AUTOVERSION_REGEX_NUMBER "[0-9]+" CACHE STRING "Regex to detect each version number.")
 
 set(AUTOVERSION_PARSE_REGEX 
-	"^${AUTOVERSION_REGEX_PREFIX}*((${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SEPARATOR}*)+.*"
+	"^${AUTOVERSION_REGEX_PREFIX}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SEPARATOR}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SEPARATOR}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SUFFIX}"
 	CACHE STRING
 	"Used by AutoVersion.cmake functions to parse the most recent git tag for a version number."
 )
@@ -46,7 +47,7 @@ macro(AV_GET_GIT_TAG _working_dir _out_var)
 	)
 endmacro()
 
-#### REGEX_PARSE_VERSION(<GIT_TAG> <OUT_VAR>[...])
+#### AV_PARSE_TAG(<GIT_TAG> <OUT_VAR>[...])
 # @brief			Parses a git tag into any number of version number sections.
 #					At least one output variable name is required.
 #					Any number of output vars can be included, example:
@@ -55,50 +56,28 @@ endmacro()
 #						minor = 2
 #						patch = 3
 # @param _tag_raw	The raw git tag string to parse.
-function(GET_VERSION _tag_raw)
+function(AV_PARSE_TAG _tag_raw)
+	if ("${_tag_raw}" STREQUAL "")
+		message(WARNING "AV_PARSE_TAG(${_tag_raw}) failed:  Received empty git tag!")
+		return()
+	endif()
 	if (${ARGC} LESS_EQUAL 1)
 		message(FATAL_ERROR "No output variables specified for AV_PARSE_VERSION()!\nARGN: \"${ARGN}\"")
 	endif()
 	math(EXPR index "0")
 	foreach(_out_var IN LISTS ARGN)
 		math(EXPR index "${index} + 1")
-		string(REGEX REPLACE "${AUTOVERSION_PARSE_REGEX}" "\\${index}" "${_out_var}" "${_tag_raw}")
+		string(REGEX REPLACE "${AUTOVERSION_PARSE_REGEX}" "\\${index}" _tmp "${_tag_raw}")
+		set(${_out_var} "${_tmp}" CACHE STRING "" FORCE)
 		message(STATUS "Set ${_out_var}: \"${${_out_var}}\"")
 	endforeach()
 endfunction()
 
-#### GET_VERSION ####
-# @brief				Retrieve and parse the result of calling `git describe --tags`
-# @param _out_major		Variable name to store the major version number
-# @param _out_minor		Variable name to store the minor version number
-# @param _out_patch		Variable name to store the patch version number
-#function(GET_VERSION _working_dir _out_major _out_minor _out_patch)
-	# set the "VERSION_TAG" cache variable to the result of `git describe ${AUTOVERSION_GIT_DESCRIBE_ARGS}` in CMAKE_SOURCE_DIR
-#	AV_GET_GIT_TAG("${_working_dir}" "VERSION_TAG")
-
-#	if ("${VERSION_TAG}" STREQUAL "") # Don't use ${} expansion here, if statements work without them and this may cause a comparison failure
-#		message(WARNING "No git tags found, skipping AutoVersioning.")
-#		return()
-#	endif()
-
-#	AV_PARSE_VERSION("${VERSION_TAG}" _MAJOR _MINOR _PATCH)
-
-	# Print a status message showing the parsed values
-#	message(STATUS "Successfully parsed version number from git tags.")
-#	message(STATUS "  MAJOR: ${_MAJOR}")
-#	message(STATUS "  MAJOR: ${_MINOR}")
-#	message(STATUS "  MAJOR: ${_PATCH}")
-
-	# Set the provided output variable names to the parsed version numbers
-#	set(${_out_major} "${_MAJOR}" CACHE STRING "(SEMVER) Major Version portion of the current git tag" FORCE)
-#	set(${_out_minor} "${_MINOR}" CACHE STRING "(SEMVER) Minor Version portion of the current git tag" FORCE)
-#	set(${_out_patch} "${_PATCH}" CACHE STRING "(SEMVER) Patch Version portion of the current git tag" FORCE)
-	
-	# Cleanup
-#	unset(_MAJOR CACHE)
-#	unset(_MINOR CACHE)
-#	unset(_PATCH CACHE)
-#endfunction()
+function(GET_VERSION _working_dir)
+	AV_GET_GIT_TAG("${_working_dir}" TAG)
+	message(STATUS "Retrieved git tag: \"${TAG}\"")
+	AV_PARSE_TAG("${TAG}" "${ARGN}")
+endfunction()
 
 #### MAKE_VERSION ####
 # @brief			Concatenate version strings into a single version string in the format "${MAJOR}.${MINOR}.${PATCH}${EXTRA}"
@@ -107,10 +86,11 @@ endfunction()
 # @param _minor		Minor version number
 # @param _patch		Patch version number
 function(MAKE_VERSION _out_var)
-	if (${ARGC} EQUAL 0)
+	if (${ARGC} EQUAL 1)
 		message(FATAL_ERROR "Invalid Version Number List: \"${ARGN}\"")
 	endif()
 	list(JOIN "${ARGN}" "." ${_out_var})
+	message(STATUS "MAKE_VERSION Created Version: \"${${_out_var}}\"")
 endfunction()
 
 #### CREATE_VERSION_HEADER ####
