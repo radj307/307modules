@@ -22,8 +22,8 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(AUTOVERSION_REGEX_PREFIX "[vV]*" CACHE STRING "Regex to match git tag prefixes that aren't part of the version number. (These are discarded)")
-set(AUTOVERSION_REGEX_SUFFIX "[\r\n\.]*" CACHE STRING "Regex to match git tag suffixes that aren't part of the version number. (These are discarded)")
-set(AUTOVERSION_REGEX_SEPARATOR "[\.-]*" CACHE STRING "Regex to match version number separators. (These are discarded)")
+set(AUTOVERSION_REGEX_SUFFIX "[\\r\\n\\.]*" CACHE STRING "Regex to match git tag suffixes that aren't part of the version number. (These are discarded)")
+set(AUTOVERSION_REGEX_SEPARATOR "[\\.-]*" CACHE STRING "Regex to match version number separators. (These are discarded)")
 set(AUTOVERSION_REGEX_NUMBER "[0-9]+" CACHE STRING "Regex to detect each version number.")
 
 set(AUTOVERSION_PARSE_REGEX 
