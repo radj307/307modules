@@ -22,7 +22,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(AUTOVERSION_REGEX_PREFIX "[vV]*" CACHE STRING "Regex to match git tag prefixes that aren't part of the version number. (These are discarded)")
-set(AUTOVERSION_REGEX_SUFFIX "[\\r\\n\\.]*" CACHE STRING "Regex to match git tag suffixes that aren't part of the version number. (These are discarded)")
+set(AUTOVERSION_REGEX_SUFFIX ".*" CACHE STRING "Regex to match git tag suffixes that aren't part of the version number. (These are discarded)")
 set(AUTOVERSION_REGEX_SEPARATOR "[\\.-]*" CACHE STRING "Regex to match version number separators. (These are discarded)")
 set(AUTOVERSION_REGEX_NUMBER "[0-9]+" CACHE STRING "Regex to detect each version number.")
 
@@ -78,8 +78,12 @@ endfunction()
 
 #### GET_VERSION(<REPO_ROOT_DIR> <OUT_FULL_GIT_TAG> [OUT_MAJOR] [OUT_MINOR] [OUT_PATCH] ...) ####
 function(GET_VERSION _working_dir _out_tag)
-	AV_GET_GIT_TAG("${_working_dir}" ${_out_tag})
-	message(STATUS "Retrieved git tag: ${${_out_tag}}")
+	AV_GET_GIT_TAG("${_working_dir}" _tmp)
+	message(STATUS "Retrieved git tag: ${_tmp}")
+	# Remove any extra characters
+	string(REGEX REPLACE "-.+" "" _tmp "${_tmp}")
+	set(${_out_tag} "${_tmp}" CACHE STRING "" FORCE)
+	message(STATUS "Parsed version number: ${${_out_tag}}")
 	AV_PARSE_TAG("${${_out_tag}}" ${ARGN})
 endfunction()
 
