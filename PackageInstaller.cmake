@@ -27,11 +27,11 @@ function(GENERATE_PACKAGING _target)
 	file(REMOVE ${PACKAGING_TARGET_CONF}) # remove any existing package config
 
 	include(InputFinder) # Find the input template
-	FIND_INPUT_FILE(CONFIG_TEMPLATE_PATH "config.cmake.in" REQUIRED)
+	FIND_INPUT_FILE(CONFIG_TEMPLATE_PATH "libConfig.cmake.in" REQUIRED)
 
 	#set(CONFIG_TEMPLATE_PATH "${CMAKE_SOURCE_DIR}/307modules/input/config.cmake.in") #<<< UPDATE THIS SO IT CHECKS ALTERNATIVE PATHS LIKE AUTOVERSION
 
-	configure_file("${CONFIG_TEMPLATE_PATH}" "${PACKAGING_TARGET_CONF}" @ONLY)
+	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/libConfig.cmake.in" "${PACKAGING_TARGET_CONF}" @ONLY)
 	message(STATUS "Successfully generated ${PACKAGING_TARGET_CONF}")
 	unset(PACKAGING_TARGET_NAME CACHE)
 endfunction()

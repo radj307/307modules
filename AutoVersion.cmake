@@ -43,8 +43,10 @@ macro(AV_GET_GIT_TAG _working_dir _out_var)
 			"describe"
 			"--tags"
 		WORKING_DIRECTORY "${_working_dir}"
-		OUTPUT_VARIABLE ${_out_var}
+		OUTPUT_VARIABLE _tmp
+		OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
+	set(${_out_var} "${_tmp}" CACHE STRING "" FORCE)
 endmacro()
 
 #### AV_PARSE_TAG(<GIT_TAG> <OUT_VAR>[...])
@@ -57,8 +59,9 @@ endmacro()
 #						patch = 3
 # @param _tag_raw	The raw git tag string to parse.
 function(AV_PARSE_TAG _tag_raw)
+	message(STATUS "AV_PARSE_TAG(${_tag_raw})")
 	if ("${_tag_raw}" STREQUAL "")
-		message(WARNING "AV_PARSE_TAG(${_tag_raw}) failed:  Received empty git tag!")
+		message(WARNING "AV_PARSE_TAG() failed:  Received empty git tag! \"${_tag_raw}\"")
 		return()
 	endif()
 	if (${ARGC} LESS_EQUAL 1)
@@ -66,31 +69,18 @@ function(AV_PARSE_TAG _tag_raw)
 	endif()
 	math(EXPR index "0")
 	foreach(_out_var IN LISTS ARGN)
-		math(EXPR index "${index} + 1")
-		string(REGEX REPLACE "${AUTOVERSION_PARSE_REGEX}" "\\${index}" _tmp "${_tag_raw}")
+		math(EXPR index "${index}+1")
+		string(REGEX REPLACE "${AUTOVERSION_PARSE_REGEX}" "\\${index}" "_tmp" ${_tag_raw})
 		set(${_out_var} "${_tmp}" CACHE STRING "" FORCE)
-		message(STATUS "Set ${_out_var}: \"${${_out_var}}\"")
+		message(STATUS "Parsed ${_out_var}: ${${_out_var}}")
 	endforeach()
 endfunction()
 
-function(GET_VERSION _working_dir)
-	AV_GET_GIT_TAG("${_working_dir}" TAG)
-	message(STATUS "Retrieved git tag: \"${TAG}\"")
-	AV_PARSE_TAG("${TAG}" "${ARGN}")
-endfunction()
-
-#### MAKE_VERSION ####
-# @brief			Concatenate version strings into a single version string in the format "${MAJOR}.${MINOR}.${PATCH}${EXTRA}"
-# @param _out_var	Name of the variable to use for output.
-# @param _major		Major version number
-# @param _minor		Minor version number
-# @param _patch		Patch version number
-function(MAKE_VERSION _out_var)
-	if (${ARGC} EQUAL 1)
-		message(FATAL_ERROR "Invalid Version Number List: \"${ARGN}\"")
-	endif()
-	list(JOIN "${ARGN}" "." ${_out_var})
-	message(STATUS "MAKE_VERSION Created Version: \"${${_out_var}}\"")
+#### GET_VERSION(<REPO_ROOT_DIR> <OUT_FULL_GIT_TAG> [OUT_MAJOR] [OUT_MINOR] [OUT_PATCH] ...) ####
+function(GET_VERSION _working_dir _out_tag)
+	AV_GET_GIT_TAG("${_working_dir}" ${_out_tag})
+	message(STATUS "Retrieved git tag: ${${_out_tag}}")
+	AV_PARSE_TAG("${${_out_tag}}" ${ARGN})
 endfunction()
 
 #### CREATE_VERSION_HEADER ####
@@ -102,10 +92,10 @@ endfunction()
 # @param _patch			Patch version number
 function(CREATE_VERSION_HEADER _name _major _minor _patch)
 	# Set temporary variables
-	set(IN_NAME ${_name} CACHE STRING "" FORCE)
-	set(IN_MAJOR ${_major} CACHE STRING "" FORCE)
-	set(IN_MINOR ${_minor} CACHE STRING "" FORCE)
-	set(IN_PATCH ${_patch} CACHE STRING "" FORCE)
+	set(IN_NAME "${_name}" CACHE STRING "" FORCE)
+	set(IN_MAJOR "${_major}" CACHE STRING "" FORCE)
+	set(IN_MINOR "${_minor}" CACHE STRING "" FORCE)
+	set(IN_PATCH "${_patch}" CACHE STRING "" FORCE)
 
 	# Remove previous
 	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
