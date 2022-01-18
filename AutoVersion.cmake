@@ -27,7 +27,7 @@ set(AUTOVERSION_REGEX_SEPARATOR "[\\.-]*" CACHE STRING "Regex to match version n
 set(AUTOVERSION_REGEX_NUMBER "[0-9]+" CACHE STRING "Regex to detect each version number.")
 
 set(AUTOVERSION_PARSE_REGEX 
-	"^${AUTOVERSION_REGEX_PREFIX}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SEPARATOR}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SEPARATOR}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SUFFIX}"
+	"^${AUTOVERSION_REGEX_PREFIX}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SEPARATOR}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SEPARATOR}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SEPARATOR}(${AUTOVERSION_REGEX_NUMBER})${AUTOVERSION_REGEX_SUFFIX}"
 	CACHE STRING
 	"Used by AutoVersion.cmake functions to parse the most recent git tag for a version number."
 )
@@ -76,8 +76,8 @@ function(AV_PARSE_TAG _tag_raw)
 	endforeach()
 endfunction()
 
-#### GET_VERSION(<REPO_ROOT_DIR> <OUT_FULL_GIT_TAG> [OUT_MAJOR] [OUT_MINOR] [OUT_PATCH] ...) ####
-function(GET_VERSION _working_dir _out_tag)
+#### AV_GET_VERSION(<REPO_ROOT_DIR> <OUT_FULL_GIT_TAG> [OUT_MAJOR] [OUT_MINOR] [OUT_PATCH] ...) ####
+function(AV_GET_VERSION _working_dir _out_tag)
 	AV_GET_GIT_TAG("${_working_dir}" _tmp)
 	message(STATUS "Retrieved git tag: ${_tmp}")
 	# Remove any extra characters
@@ -87,14 +87,14 @@ function(GET_VERSION _working_dir _out_tag)
 	AV_PARSE_TAG("${${_out_tag}}" ${ARGN})
 endfunction()
 
-#### CREATE_VERSION_HEADER ####
+#### CREATE_VERSION_HEADER(<FILEPATH> <MAJOR> <MINOR> <PATCH>) ####
 # @brief				Creates a copy of the version.h.in header in the caller's source directory.
 #\n						You can optionally include the path to the input version header.
-# @param _name			The name of the library
+# @param _out_header	The name & location of the output file.
 # @param _major			Major version number
 # @param _minor			Minor version number
 # @param _patch			Patch version number
-function(CREATE_VERSION_HEADER _name _major _minor _patch)
+function(CREATE_VERSION_HEADER _out_header _major _minor _patch)
 	# Set temporary variables
 	set(IN_NAME "${_name}" CACHE STRING "" FORCE)
 	set(IN_MAJOR "${_major}" CACHE STRING "" FORCE)
@@ -102,14 +102,67 @@ function(CREATE_VERSION_HEADER _name _major _minor _patch)
 	set(IN_PATCH "${_patch}" CACHE STRING "" FORCE)
 
 	# Remove previous
-	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
+	file(REMOVE "${_out_header}")
 
 	# Configure file
-	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
+	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${_out_header}")
 
 	# Unset temporary cache variables
 	unset(IN_NAME CACHE)
 	unset(IN_MAJOR CACHE)
 	unset(IN_MINOR CACHE)
 	unset(IN_PATCH CACHE)
+endfunction()
+
+#### IS_GIT_REPOSITORY(<OUT_BOOL> <REPOSITORY_ROOT_DIRECTORY>) ####
+# @brief	Checks if the given directory contains a ".git" subdirectory.
+function(IS_GIT_REPOSITORY _out_var _path)
+	if (EXISTS "${_path}/.git")
+		set(${_out_var} TRUE CACHE BOOL "" FORCE)
+	else()
+		set(${_out_var} FALSE CACHE BOOL "" FORCE)
+	endif()
+	message(STATUS "IS_GIT_REPOSITORY: ${${_out_var}}")
+endfunction()
+
+#### GET_VERSION
+function(GET_VERSION _version_prefix _repository_path)
+	if (${ARGC} GREATER 2)
+		message(FATAL_ERROR 
+			" #####################################################################################################\n"
+			" You're using the old GET_VERSION method that has been replaced, to fix this error:\n"
+			" 1.  Remove all arguments from the function call.\n"
+			" 2.  Use only the \"..._VERSION\" prefix as the first argument.\n"
+			" 3.  Use the target repository directory as the second argument. (Usually CMAKE_CURRENT_SOURCE_DIR)\n"
+			" #####################################################################################################"
+		)
+	endif()
+
+	# Check if this is a git repository
+	IS_GIT_REPOSITORY(USE_AUTOVERSION ${_repository_path})
+
+	if (USE_AUTOVERSION)
+		AV_GET_VERSION("${_repository_path}" ${_version_prefix}_VERSION ${_version_prefix}_VERSION_MAJOR ${_version_prefix}_VERSION_MINOR ${_version_prefix}_VERSION_PATCH)
+		if (${_version_prefix}_VERSION STREQUAL "")
+			set(_use_env TRUE)
+		else()
+			set(_use_env FALSE)
+		endif()
+	endif()
+
+	if(NOT USE_AUTOVERSION OR _use_env)
+		set(_env_var_name "${_version_prefix}_VERSION")
+		message(WARNING
+			" > AutoVersion couldn't find a usable git tag!\n"
+			" Attempting to fallback to environment variable: \"${_env_var_name}\"\n"
+		)
+		set(${_version_prefix}_VERSION "$ENV{${_env_var_name}}" CACHE STRING "" FORCE)
+		AV_PARSE_TAG("${${_env_var_name}}" ${_env_var_name}_MAJOR ${_env_var_name}_MINOR ${_env_var_name}_PATCH)
+	endif()
+
+
+	# Cleanup variables
+	unset(_path)
+	unset(USE_AUTOVERSION CACHE)
+	unset(_use_env)
 endfunction()
