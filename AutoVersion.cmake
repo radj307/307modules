@@ -134,6 +134,7 @@ function(GET_VERSION _version_prefix _repository_path)
 			" 1.  Remove all arguments from the function call.\n"
 			" 2.  Use only the \"..._VERSION\" prefix as the first argument.\n"
 			" 3.  Use the target repository directory as the second argument. (Usually CMAKE_CURRENT_SOURCE_DIR)\n"
+			" The arguments in question are: ${ARGN}"
 			" #####################################################################################################"
 		)
 	endif()
