@@ -94,7 +94,7 @@ endfunction()
 # @param _major			Major version number
 # @param _minor			Minor version number
 # @param _patch			Patch version number
-function(CREATE_VERSION_HEADER _out_header _major _minor _patch)
+function(CREATE_VERSION_HEADER _out_header _name _major _minor _patch)
 	# Set temporary variables
 	set(IN_NAME "${_name}" CACHE STRING "" FORCE)
 	set(IN_MAJOR "${_major}" CACHE STRING "" FORCE)
@@ -134,7 +134,6 @@ function(GET_VERSION _version_prefix _repository_path)
 			" 1.  Remove all arguments from the function call.\n"
 			" 2.  Use only the \"..._VERSION\" prefix as the first argument.\n"
 			" 3.  Use the target repository directory as the second argument. (Usually CMAKE_CURRENT_SOURCE_DIR)\n"
-			" The arguments in question are: ${ARGN}"
 			" #####################################################################################################"
 		)
 	endif()
