@@ -1,0 +1,21 @@
+/**
+ * @file	version.h
+ * @author	AutoVersion.cmake
+ * @brief	Auto-generated preprocessor definitions for enforcing a consistent program version number.
+ *\n		This file is created during the CMake project generation stage. Regenerate the cmake cache to regenerate the file.
+ */
+#pragma once
+
+/// @brief	The current major version number.
+#define @_PROJECT@_VERSION_MAJOR @_MAJOR@
+/// @brief	The current minor version number.
+#define @_PROJECT@_VERSION_MINOR @_MINOR@
+/// @brief	The current patch version number.
+#define @_PROJECT@_VERSION_PATCH @_PATCH@
+/// @brief	Any extra characters present in the current git tag.
+#define @_PROJECT@_VERSION_EXTRA @_EXTRA@
+
+/// @brief	The current version number.
+#define @_PROJECT@_VERSION @_PROJECT@_VERSION_MAJOR##.##@_PROJECT@_VERSION_MINOR##.##@_PROJECT@_VERSION_PATCH
+/// @brief	The current full version number.
+#define @_PROJECT@_VERSION_FULL @_PROJECT@_VERSION_MAJOR##.##@_PROJECT@_VERSION_MINOR##.##@_PROJECT@_VERSION_PATCH##-##@_PROJECT@_VERSION_EXTRA
