@@ -59,7 +59,13 @@ function(AV2_GET_VERSION _working_dir _out_fullversion)
 	string(REGEX REPLACE "[\\-\\.]*[A-Za-z]+[\\-\\.]*" "" _tmp ${_tmp})
 	string(REGEX REPLACE "(^[0-9]+[\\-\\.][0-9]+[\\-\\.][0-9]+[\\-\\. ])(.+)" "\\1" _tmp "${_tmp}")
 
-	set("${_out_fullversion}" "${_tmp}")
+	list(GET _split_tag 0 _fst)
+	list(GET _split_tag 1 _snd)
+	list(GET _split_tag 2 _thr)
+
+
+	#set("${_out_fullversion}" "${_tmp}")
+	set("${_out_fullversion}" "${_fst}.${_snd}.${_thr}")
 	set("${_out_fullversion}" "${${_out_fullversion}}" CACHE STRING "" FORCE)
 
 	message(STATUS "AV2_GET_VERSION():  \$\{${_out_fullversion}\} = \"${${_out_fullversion}}\"")
