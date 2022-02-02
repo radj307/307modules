@@ -77,15 +77,37 @@ function(AV_PARSE_TAG _tag_raw)
 	endforeach()
 endfunction()
 
+function(AV_PARSE_TAG_2 _tag_raw)
+	string(REGEX MATCHALL
+		"[0-9\\w]+"
+		_groups
+		"${_tag_raw}"
+	)
+	message(STATUS "_groups = ${_groups}")
+	math(EXPR index "0")
+	foreach(_cap IN LISTS _groups)
+		if(${ARGC} GREATER_EQUAL ${index})
+			list(GET ARGN ${index} _arg)
+			set(${_arg} "${_cap}")
+			set(${_arg} "${${_arg}}" CACHE STRING "" FORCE)
+			message(STATUS "AV_PARSE_TAG_2():  ${_arg} = \"${${_arg}}\"  [${index}]")
+		endif()
+		math(EXPR index "${index}+1")
+	endforeach()
+endfunction()
+
 #### AV_GET_VERSION(<REPO_ROOT_DIR> <OUT_FULL_GIT_TAG> [OUT_MAJOR] [OUT_MINOR] [OUT_PATCH] ...) ####
 function(AV_GET_VERSION _working_dir _out_tag)
 	AV_GET_GIT_TAG("${_working_dir}" _tmp)
-	message(STATUS "Retrieved git tag: ${_tmp}")
+	message(STATUS "AV_GET_VERSION():  Retrieved git tag: ${_tmp}")
 	# Remove any extra characters
 	string(REGEX REPLACE "-.+" "" _tmp "${_tmp}")
 	set(${_out_tag} "${_tmp}" CACHE STRING "" FORCE)
-	message(STATUS "Parsed version number: ${${_out_tag}}")
-	AV_PARSE_TAG("${${_out_tag}}" ${ARGN})
+	message(STATUS "AV_GET_VERSION():  Parsed version number: ${${_out_tag}}")
+	AV_PARSE_TAG_2("${${_out_tag}}" ${ARGN})
+	string(REGEX REPLACE "([0-9]+\\.[0-9]+\\.[0-9]+).+" "\\1" _tmp "${${_out_tag}}")
+	message(STATUS "AV_GET_VERSION():  Truncated version number: \"${${_out_tag}}\" = \"${_tmp}\"")
+	set(${_out_tag} "${_tmp}" CACHE STRING "" FORCE)
 endfunction()
 
 #### IS_GIT_REPOSITORY(<OUT_BOOL> <REPOSITORY_ROOT_DIRECTORY>) ####
@@ -116,7 +138,22 @@ function(GET_VERSION _version_prefix _repository_path)
 	IS_GIT_REPOSITORY(USE_AUTOVERSION ${_repository_path})
 
 	if (USE_AUTOVERSION)
-		AV_GET_VERSION("${_repository_path}" ${_version_prefix}_VERSION ${_version_prefix}_VERSION_MAJOR ${_version_prefix}_VERSION_MINOR ${_version_prefix}_VERSION_PATCH)
+		AV_GET_VERSION(
+			"${_repository_path}"
+			${_version_prefix}_VERSION
+			${_version_prefix}_VERSION_MAJOR
+			${_version_prefix}_VERSION_MINOR
+			${_version_prefix}_VERSION_PATCH
+			${_version_prefix}_VERSION_EXTRA1
+			${_version_prefix}_VERSION_EXTRA2
+			${_version_prefix}_VERSION_EXTRA3
+			${_version_prefix}_VERSION_EXTRA4
+			${_version_prefix}_VERSION_EXTRA5
+			${_version_prefix}_VERSION_EXTRA6
+			${_version_prefix}_VERSION_EXTRA7
+			${_version_prefix}_VERSION_EXTRA8
+			${_version_prefix}_VERSION_EXTRA9
+		)
 		if (${_version_prefix}_VERSION STREQUAL "")
 			set(_use_env TRUE)
 		else()
