@@ -112,7 +112,7 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 				FATAL_ERROR
 				"               ########### FATAL ERROR ###########\n"
 				" Function:     GET_VERSION()\n"
-				" Reason:       Failed to retrieve a valid version number!\n"
+				" Reason:       Failed to retrieve a valid 3-part SEMVER version number!\n"
 				" Repository:   \"${_repository_dir}\""
 				" Git Tag:      \"${_tag}\""
 			)
@@ -132,6 +132,12 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 	endif()
 endfunction()
 
+# MAKE_VERSION_HEADER(<HEADER_FILE> <PROJECT_NAME> <VERSION>)
+#	Create a header file with preprocessor definitions for the current project version for use in code.
+# PARAMETERS:
+#	HEADER_FILE		The path & name of the output file, including filename & extensions.
+#	PROJECT_NAME	The name of the current project, which is used as a prefix.
+#	VERSION			The full CMake-compatible project version. (Usually ${PROJECT_NAME}_VERSION)
 function(MAKE_VERSION_HEADER _out_header _project_name _version)
 	set(IN_NAME "${_name}" CACHE STRING "" FORCE)
 
