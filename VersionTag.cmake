@@ -139,7 +139,7 @@ endfunction()
 #	PROJECT_NAME	The name of the current project, which is used as a prefix.
 #	VERSION			The full CMake-compatible project version. (Usually ${PROJECT_NAME}_VERSION)
 function(MAKE_VERSION_HEADER _out_header _project_name _version)
-	set(IN_NAME "${_name}" CACHE STRING "" FORCE)
+	set(IN_NAME "${_project_name}" CACHE STRING "" FORCE)
 
 	PARSE_TAG("${_version}" IN_MAJOR IN_MINOR IN_PATCH)
 
