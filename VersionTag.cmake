@@ -39,6 +39,7 @@ endmacro()
 
 # PARSE_TAG(<TAG> <[OUT_NAMES]...>)
 #   Parse a git tag into a list of strings matching the regular expression "[0-9A-Za-z]+".
+#	Function will fill as many output variables as possible using regex capture groups.
 # PARAMETERS:
 #   TAG			(VALUE) Input Tag String.
 #   OUT_NAMES	(NAME)	Any number of variable names that correspond to regular expression capture groups.
@@ -126,13 +127,15 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 		)
 		message(STATUS "GET_VERSION():  \$\{${_project_name}_VERSION\} = ${${_project_name}_VERSION}")
 		return()
-	elseif(NOT "$ENV{${_project_name}_VERSION}" STREQUAL "")
-		message(WARNING "GET_VERSION():  Directory is not a git repository, using fallback version \"$ENV{${_project_name}_VERSION}\"")
-		set("${_project_name}_VERSION" "$ENV{${_project_name}_VERSION}" CACHE STRING "Fallback version number for project \"${_project_name}\"" FORCE)
-		return()
 	else()
-		message(FATAL_ERROR "GET_VERSION():  Directory is not a git repository!")
-		return()
+		if(DEFINED ENV{${_project_name}_VERSION}) # If a fallback version number is available from the environment, use that
+			message(WARNING "GET_VERSION():  Directory is not a git repository, using fallback version \"$ENV{${_project_name}_VERSION}\"")
+			set("${_project_name}_VERSION" "$ENV{${_project_name}_VERSION}" CACHE STRING "Fallback version number for project \"${_project_name}\"" FORCE)
+			return()
+		else()
+			message(FATAL_ERROR "GET_VERSION():  Directory is not a git repository!")
+			return()
+		endif()
 	endif()
 endfunction()
 
@@ -142,15 +145,32 @@ endfunction()
 #	HEADER_FILE		The path & name of the output file, including filename & extensions.
 #	PROJECT_NAME	The name of the current project, which is used as a prefix.
 #	VERSION			The full CMake-compatible project version. (Usually ${PROJECT_NAME}_VERSION)
+# OVERRIDE WARNINGS:  (This function will delete the following cache variables if they are set):
+#	IN_PROJECT | IN_VERSION | IN_MAJOR | IN_MINOR | IN_PATCH | IN_EXTRA1 | IN_EXTRA2 | IN_EXTRA3 | IN_EXTRA4 | IN_EXTRA5 | IN_EXTRA6 | IN_EXTRA7 | IN_EXTRA8 | IN_EXTRA9
 function(MAKE_VERSION_HEADER _out_header _project_name _version)
-	set(IN_NAME "${_project_name}" CACHE STRING "" FORCE)
+	set(IN_PROJECT "${_project_name}" CACHE STRING "" FORCE)
 
-	PARSE_TAG("${_version}" IN_MAJOR IN_MINOR IN_PATCH)
+	set(IN_VERSION "${_version}" CACHE STRING "" FORCE)
+	PARSE_TAG("${_version}" IN_MAJOR IN_MINOR IN_PATCH IN_EXTRA1 IN_EXTRA2 IN_EXTRA3 IN_EXTRA4 IN_EXTRA5 IN_EXTRA6 IN_EXTRA7 IN_EXTRA8 IN_EXTRA9)
 
-	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${_out_header}")
+	# Remove the current version header if it exists
+	file(REMOVE "${_out_header}")
 
-	unset(IN_NAME CACHE)
+	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${_out_header}" USE_SOURCE_PERMISSIONS @ONLY)
+
+	# unset cache variables
+	unset(IN_PROJECT CACHE)
+	unset(IN_VERSION CACHE)
 	unset(IN_MAJOR CACHE)
 	unset(IN_MINOR CACHE)
 	unset(IN_PATCH CACHE)
+	unset(IN_EXTRA1 CACHE)
+	unset(IN_EXTRA2 CACHE)
+	unset(IN_EXTRA3 CACHE)
+	unset(IN_EXTRA4 CACHE)
+	unset(IN_EXTRA5 CACHE)
+	unset(IN_EXTRA6 CACHE)
+	unset(IN_EXTRA7 CACHE)
+	unset(IN_EXTRA8 CACHE)
+	unset(IN_EXTRA9 CACHE)
 endfunction()
