@@ -50,7 +50,6 @@ function(PARSE_TAG _tag)
 		_groups
 		"${_tag}"
 	)
-	message(STATUS "_groups = ${_groups}")
 	math(EXPR index "0")
 	foreach(_cap IN LISTS _groups)
 		if(${ARGC} GREATER_EQUAL ${index})

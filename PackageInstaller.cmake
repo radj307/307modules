@@ -53,7 +53,7 @@ function(CREATE_PACKAGE _target _compat_mode)
 endfunction()
 
 #### INSTALL_PACKAGE(<target> [[GENERATE] [COMPAT_MODE]]) ####
-# @brief				Installs the specified package.
+# @brief				Creates an installation target for the specified package.
 #						If "GENERATE" is included as the 2nd argument, the function will call the `CREATE_PACKAGE` function first.
 #						If "GENERATE" was included, the package compatibility mode can be specified as the 3rd argument. If left blank, "SameMajorVersion" is used.
 # @param _target		The name of the target library. This must be a direct subdirectory of CMAKE_SOURCE_DIR, and the name of the library target.
@@ -118,7 +118,11 @@ function(INSTALL_PACKAGE _target)
 endfunction()
 
 function(INSTALL_EXECUTABLE _target _destination)
-	message(STATUS "Installing executable: \"${_target}\" in destination directory: \"${_destination}\"")
+	message(STATUS 
+		" INSTALL_EXECUTABLE():  Created installation target successfully."
+	    "   Target Executable:  \"${_target}\""
+		"   Target Destination: \"${_destination}\""
+	)
 	install(
 		TARGETS ${_target}
 		RUNTIME
