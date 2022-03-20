@@ -3,25 +3,193 @@ cmake_minimum_required(VERSION 3.20)
 
 set(RCM_ICON_RESOURCE "IDI_ICON1               ICON                    \"@_icon_filepath@\"" CACHE STRING "The content of an icon resource file, before using string(CONFIGURE) on it.")
 
+#### MAKE_FILES([filenames]...) ####
+# @brief					Create any number of files.
+#							If this function is called with blank arguments, or no arguments, a warning message is printed to the log.
+# @param	filenames...	Any number of filenames to create in the specified location.
+function(MAKE_FILES)
+	if (${ARGC} EQUAL 0 OR "${ARGN}" STREQUAL "")
+		message(WARNING "MAKE_FILE():  !![WARNING]!! Function was called without any valid arguments, something is wrong!")
+	else()
+		file(TOUCH "${ARGN}")
+	endif()
+endfunction(MAKE_FILES)
+
+#### MAKE_STRINGRC_ICON(<OUT_STRINGRC> <ICON_FILEPATH>) ####
+# @brief					Creates a string cache variable containing an icon entry formatted for a .rc file. 
+#							Pass the returned string to the MAKE_RESOURCE() function.
+# @param _out_string		The name of a cache variable to save the configured string as.
+# @param _icon_filepath		The filepath of the icon file on the system. 
+function(MAKE_STRINGRC_ICON _out_string _icon_filepath)
+	string(CONFIGURE
+		"${RCM_ICON_RESOURCE}"
+		_stringrc
+		@ONLY
+	)
+	set("${_out_string}" "${_stringrc}" CACHE STRING "[String Resource] RC icon saved as a string." FORCE)
+endfunction(MAKE_STRINGRC_ICON)
+
+#### MAKE_STRINGRC_VERSIONINFO_LONG(<OUT_STRINGRC> ...) ####
+# @brief	Long-form versioninfo maker that accepts additional fields over the regular function.
+function(MAKE_STRINGRC_VERSIONINFO_LONG
+	_out_string
+	_fileVersion
+	_legalCopyright
+	_companyName
+	_productName
+	_fileDescription
+	_internalName
+	_version_product
+	_originalFilename
+)
+	# Set input variables
+	## Parse version numbers
+	include (VersionTag)
+
+	PARSE_TAG("${_fileVersion}" __RCMKR_FV1 __RCMKR_FV2 __RCMKR_FV3 __RCMKR_FV4)
+	PARSE_TAG("${_version_product}" __RCMKR_PV1 __RCMKR_PV2 __RCMKR_PV3 __RCMKR_PV4)
+
+	# Read & configure the string resource
+	file(READ "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/versioninfo.rc.in" _stringrc)
+	string(CONFIGURE
+		"${_stringrc}"
+		_out_stringrc
+		@ONLY
+	)
+
+	# Set the output variable
+	set("${_out_string}" "${_out_stringrc}" PARENT_SCOPE)
+endfunction(MAKE_STRINGRC_VERSIONINFO_LONG)
+
+#### MAKE_STRINGRC_VERSIONINFO() ####
+# @brief
+function(MAKE_STRINGRC_VERSIONINFO
+	_out_string
+	_fileVersion
+	_legalCopyright
+	_companyName
+	_productName
+	_fileDescription
+)
+	# Set input variables
+
+	set(_internalName "${_productName}")
+	set(_originalFilename "${_productName}")
+
+	## Parse version numbers
+	include (VersionTag)
+
+	PARSE_TAG("${_fileVersion}" __RCMKR_FV1 __RCMKR_FV2 __RCMKR_FV3 __RCMKR_FV4)
+
+	set(__RCMKR_PV1 "${__RCMKR_FV1}")
+	set(__RCMKR_PV2 "${__RCMKR_FV2}")
+	set(__RCMKR_PV3 "${__RCMKR_FV3}")
+	set(__RCMKR_PV4 "${__RCMKR_FV4}")
+
+	# Read & configure the string resource
+	file(READ "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/versioninfo.rc.in" _stringrc)
+	string(CONFIGURE
+		"${_stringrc}"
+		_out_stringrc
+		@ONLY
+	)
+
+	# Set the output variable
+	set("${_out_string}" "${_out_stringrc}" PARENT_SCOPE)
+endfunction(MAKE_STRINGRC_VERSIONINFO)
+
+#### MAKE_STRINGRC_VERSIONINFO_SHORT() ####
+# Requires a "${_project}_VERSION" variable already having been set by VersionTag or manually.
+function(MAKE_STRINGRC_VERSIONINFO_SHORT
+	_out_string
+	_project
+	# [_legalCopyright]
+	# [_companyName]
+	# [_productName]
+	# [_fileDescription]
+)
+	# Set input variables
+	foreach(_i RANGE 4)
+		math(EXPR _index "${_i} + 2")
+		if ("${_index}" GREATER_EQUAL "${ARGC}")
+			break()
+		elseif ("${_i}" EQUAL 0)
+			list(GET "${ARGN}" "${_index}" _legalCopyright)
+		elseif("${_i}" EQUAL 1)
+			list(GET "${ARGN}" "${_index}" _companyName)
+		elseif("${_i}" EQUAL 2)
+			list(GET "${ARGN}" "${_index}" _productName)
+		elseif("${_i}" EQUAL 3)
+			list(GET "${ARGN}" "${_index}" _fileDescription)
+		endif()
+	endforeach()
+
+	set(_internalName "${_project}")
+	set(_originalFilename "${_project}")
+
+	## Parse version numbers
+	include (VersionTag)
+
+	PARSE_TAG("${${_project}_VERSION}" __RCMKR_FV1 __RCMKR_FV2 __RCMKR_FV3 __RCMKR_FV4)
+
+	set(__RCMKR_PV1 "${__RCMKR_FV1}")
+	set(__RCMKR_PV2 "${__RCMKR_FV2}")
+	set(__RCMKR_PV3 "${__RCMKR_FV3}")
+	set(__RCMKR_PV4 "${__RCMKR_FV4}")
+
+	# Read & configure the string resource
+	file(READ "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/versioninfo.rc.in" _stringrc)
+	string(CONFIGURE
+		"${_stringrc}"
+		_out_stringrc
+		@ONLY
+	)
+
+	unset(__RCMKR_FV1 CACHE)
+	unset(__RCMKR_FV2 CACHE)
+	unset(__RCMKR_FV3 CACHE)
+	unset(__RCMKR_FV4 CACHE)
+
+	unset(__RCMKR_PV1 CACHE)
+	unset(__RCMKR_PV2 CACHE)
+	unset(__RCMKR_PV3 CACHE)
+	unset(__RCMKR_PV4 CACHE)
+
+	# Set the output variable
+	set("${_out_string}" "${_out_stringrc}" PARENT_SCOPE)
+endfunction(MAKE_STRINGRC_VERSIONINFO_SHORT)
+
+#### MAKE_RESOURCE(<OUT_FILE> [STRINGRC]...) ####
+# @brief	Create a .rc resource file in the local filesystem.
+# @param _out_file
+function(MAKE_RESOURCE _out_file)
+	# Get the filename without extensions & write the file with the named header
+	get_filename_component(_out_filename "${_out_file}" NAME CACHE)
+	file(WRITE "${_out_file}" "1 TYPELIB \"${_out_filename}\"")
+	message(STATUS "MAKE_RESOURCE():  Created resource file \"${_out_file}\" using filename component \"${_out_filename}\"")
+	unset(_out_filename CACHE) # Delete cache variable to prevent potential pollution
+	
+	foreach (_stringrc IN LISTS "${ARGN}")
+		file(APPEND "${_out_file}" "${_stringrc}")
+		message(STATUS "MAKE_RESOURCE():  Writing String Resource to File: \"${_stringrc}\"")
+	endforeach()
+	message(STATUS "MAKE_RESOURCE():  Resource file written successfully.")
+endfunction(MAKE_RESOURCE)
+
+
+#############################################################################
+#                     ResourceMaker Legacy Functions						#
+#############################################################################
+
+
 macro(SETCACHE _name _value)
 	set("${_name}" "${_value}" CACHE STRING "" FORCE)
 endmacro()
-
-
 function(CREATE_FILE _out_file)
 	file(WRITE "${_out_file}" ${ARGN})
 endfunction()
-
 function(APPEND_FILE _out_file)
 	file(APPEND "${_out_file}" ${ARGN})
-endfunction()
-
-function(CREATE_FILE_VERSION_HEADER _out_file _name _version)
-	include(AutoVersion)
-	CREATE_FILE("${_out_file}" 
-		"#pragma once\\n"
-		"#define ${_name} \"${_version}\"\\n"
-	)
 endfunction()
 
 #### CREATE_RESOURCE(<OUT_FILEPATH> [CONTENT...]) ####
@@ -32,6 +200,7 @@ endfunction()
 
 #### CREATE_VERSION_RESOURCE(<OUT_FILE> <MAJOR> <MINOR> <PATCH> <COMPANY_NAME> <DESCRIPTION> <INTERNAL_NAME> <COPYRIGHT> <ORIGINAL_FILENAME> <PRODUCT_NAME>) ####
 # @brief					Creates a versioninfo.rc file in the given directory.
+#			!![NOTE]!!		This function is deprecated, use the "MAKE_STRINGRC_VERSIONINFO" & "MAKE_RESOURCE()" functions instead!
 # @param _out_rc_file		Output filename & path.
 # @param _version_major		Major version number
 # @param _version_minor		Minor version number

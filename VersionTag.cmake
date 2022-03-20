@@ -55,7 +55,7 @@ function(PARSE_TAG _tag)
 		if(${ARGC} GREATER_EQUAL ${index})
 			list(GET ARGN ${index} _arg)
 			set(${_arg} "${_cap}")
-			set(${_arg} "${${_arg}}" CACHE STRING "Version Tag Capture Group ${index}" FORCE)
+			set(${_arg} "${${_arg}}" CACHE INTERNAL "Version Tag Capture Group ${index}")
 			message(STATUS "PARSE_TAG():  ${_arg} = \"${${_arg}}\"  [${index}]")
 		endif()
 		math(EXPR index "${index}+1")
@@ -84,7 +84,7 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 		GET_TAG_FROM("${_repository_dir}" _tag)
 		if ("${_tag}" STREQUAL "" AND DEFINED ENV{${_project_name}_VERSION})
 			message(WARNING "Using fallback version number from environment: \"$ENV{${_project_name}_VERSION}\"")
-			set(_tag "$ENV{${_project_name}_VERSION}" CACHE STRING "Fallback version number" FORCE)
+			set(_tag "$ENV{${_project_name}_VERSION}" CACHE INTERNAL "Fallback version number")
 		endif()
 		PARSE_TAG(
 			"${_tag}"
@@ -115,16 +115,15 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 		set( # Set the CMake-compatible version number
 			"${_project_name}_VERSION" 
 			"${${_project_name}_VERSION_MAJOR}.${${_project_name}_VERSION_MINOR}.${${_project_name}_VERSION_PATCH}" 
-			CACHE STRING
+			CACHE INTERNAL
 			"${_project_name} version number parsed from git repository located at \"${_repository_dir}\"."
-			FORCE
 		)
 		message(STATUS "GET_VERSION():  \$\{${_project_name}_VERSION\} = ${${_project_name}_VERSION}")
 		return()
 	else()
 		if(DEFINED ENV{${_project_name}_VERSION}) # If a fallback version number is available from the environment, use that
 			message(WARNING "GET_VERSION():  Directory is not a git repository, using fallback version \"$ENV{${_project_name}_VERSION}\"")
-			set("${_project_name}_VERSION" "$ENV{${_project_name}_VERSION}" CACHE STRING "Fallback version number for project \"${_project_name}\"" FORCE)
+			set("${_project_name}_VERSION" "$ENV{${_project_name}_VERSION}" CACHE INTERNAL "Fallback version number for project \"${_project_name}\"")
 			return()
 		else()
 			message(FATAL_ERROR "GET_VERSION():  Directory is not a git repository and no fallback version was set!")
@@ -142,9 +141,9 @@ endfunction()
 # OVERRIDE WARNINGS:  (This function will delete the following cache variables if they are set):
 #	IN_PROJECT | IN_VERSION | IN_MAJOR | IN_MINOR | IN_PATCH | IN_EXTRA1 | IN_EXTRA2 | IN_EXTRA3 | IN_EXTRA4 | IN_EXTRA5 | IN_EXTRA6 | IN_EXTRA7 | IN_EXTRA8 | IN_EXTRA9
 function(MAKE_VERSION_HEADER _out_header _project_name _version)
-	set(IN_PROJECT "${_project_name}" CACHE STRING "" FORCE)
+	set(IN_PROJECT "${_project_name}" CACHE INTERNAL "")
 
-	set(IN_VERSION "${_version}" CACHE STRING "" FORCE)
+	set(IN_VERSION "${_version}" CACHE INTERNAL "")
 	PARSE_TAG("${_version}" IN_MAJOR IN_MINOR IN_PATCH IN_EXTRA1 IN_EXTRA2 IN_EXTRA3 IN_EXTRA4 IN_EXTRA5 IN_EXTRA6 IN_EXTRA7 IN_EXTRA8 IN_EXTRA9)
 
 	# Remove the current version header if it exists
