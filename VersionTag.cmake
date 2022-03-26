@@ -132,6 +132,40 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 	endif()
 endfunction()
 
+
+# MAKE_VERSION_HEADER_LONG(<HEADER_FILE> <PROJECT_NAME> <MAJOR> <MINOR> <PATCH> <EXTRA>)
+#	This is an alternative to the MAKE_VERSION_HEADER function that accepts the version number as individual components.
+#	
+#	_out_header			The filepath of the header file that will be created. Any current file located at this path will be deleted.
+#	_project_name		This is the prefix to give each preprocessor definition
+#	IN_MAJOR			Major Version
+#	IN_MINOR			Minor Version
+#	IN_PATCH			Patch Version
+#	IN_EXTRA			Extra Version Number Components, such as revision or pre-release number.
+function(MAKE_VERSION_HEADER_LONG _out_header _project_name IN_MAJOR IN_MINOR IN_PATCH IN_EXTRA)
+	message(STATUS
+		" MAKE_VERSION_HEADER_LONG():  _out_header   = \"${_out_header}\"\n"
+		" MAKE_VERSION_HEADER_LONG():  _project_name = \"${_project_name}\"\n"
+		" MAKE_VERSION_HEADER_LONG():  IN_MAJOR      = \"${IN_MAJOR}\"\n"
+		" MAKE_VERSION_HEADER_LONG():  IN_MINOR      = \"${IN_MINOR}\"\n"
+		" MAKE_VERSION_HEADER_LONG():  IN_PATCH      = \"${IN_PATCH}\"\n"
+		" MAKE_VERSION_HEADER_LONG():  IN_EXTRA      = \"${IN_EXTRA}\""
+	)
+	
+	# Set the separator character if necessary
+	if("${IN_EXTRA}" STREQUAL "")
+		set(SEP_EXTRA "")
+	else()
+		set(SEP_EXTRA "-")
+	endif()
+
+	# Remove the current version header if it exists
+	file(REMOVE "${_out_header}")
+
+	# Use configure_file to create the output file from a template
+	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${_out_header}" USE_SOURCE_PERMISSIONS @ONLY)
+endfunction()
+
 # MAKE_VERSION_HEADER(<HEADER_FILE> <PROJECT_NAME> <VERSION>)
 #	Create a header file with preprocessor definitions for the current project version for use in code.
 # PARAMETERS:
@@ -139,31 +173,33 @@ endfunction()
 #	PROJECT_NAME	The name of the current project, which is used as a prefix.
 #	VERSION			The full CMake-compatible project version. (Usually ${PROJECT_NAME}_VERSION)
 # OVERRIDE WARNINGS:  (This function will delete the following cache variables if they are set):
-#	IN_PROJECT | IN_VERSION | IN_MAJOR | IN_MINOR | IN_PATCH | IN_EXTRA1 | IN_EXTRA2 | IN_EXTRA3 | IN_EXTRA4 | IN_EXTRA5 | IN_EXTRA6 | IN_EXTRA7 | IN_EXTRA8 | IN_EXTRA9
+#	IN_PROJECT | IN_VERSION | IN_MAJOR | IN_MINOR | IN_PATCH | IN_EXTRA
 function(MAKE_VERSION_HEADER _out_header _project_name _version)
+	message(STATUS
+		" MAKE_VERSION_HEADER():  _out_header   = \"${_out_header}\"\n"
+		" MAKE_VERSION_HEADER():  _project_name = \"${_project_name}\"\n"
+		" MAKE_VERSION_HEADER():  _version      = \"${_version}\""
+	)
 	set(IN_PROJECT "${_project_name}" CACHE INTERNAL "")
 
-	set(IN_VERSION "${_version}" CACHE INTERNAL "")
-	PARSE_TAG("${_version}" IN_MAJOR IN_MINOR IN_PATCH IN_EXTRA1 IN_EXTRA2 IN_EXTRA3 IN_EXTRA4 IN_EXTRA5 IN_EXTRA6 IN_EXTRA7 IN_EXTRA8 IN_EXTRA9)
+	# Parse the given version number
+	PARSE_TAG("${_version}"
+		IN_MAJOR
+		IN_MINOR
+		IN_PATCH
+		IN_EXTRA
+	)
+
+	# Set the separator character if necessary
+	if("${IN_EXTRA}" STREQUAL "")
+		set(SEP_EXTRA "")
+	else()
+		set(SEP_EXTRA "-")
+	endif()
 
 	# Remove the current version header if it exists
 	file(REMOVE "${_out_header}")
 
+	# Use configure_file to create the output file from a template
 	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${_out_header}" USE_SOURCE_PERMISSIONS @ONLY)
-
-	# unset cache variables
-	unset(IN_PROJECT CACHE)
-	unset(IN_VERSION CACHE)
-	unset(IN_MAJOR CACHE)
-	unset(IN_MINOR CACHE)
-	unset(IN_PATCH CACHE)
-	unset(IN_EXTRA1 CACHE)
-	unset(IN_EXTRA2 CACHE)
-	unset(IN_EXTRA3 CACHE)
-	unset(IN_EXTRA4 CACHE)
-	unset(IN_EXTRA5 CACHE)
-	unset(IN_EXTRA6 CACHE)
-	unset(IN_EXTRA7 CACHE)
-	unset(IN_EXTRA8 CACHE)
-	unset(IN_EXTRA9 CACHE)
 endfunction()
