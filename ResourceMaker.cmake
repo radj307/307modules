@@ -47,7 +47,34 @@ function(MAKE_STRINGRC_VERSIONINFO_LONG
 	include (VersionTag)
 
 	PARSE_TAG("${_fileVersion}" __RCMKR_FV1 __RCMKR_FV2 __RCMKR_FV3 __RCMKR_FV4)
+	
+	if ("${__RCMKR_FV1}" STREQUAL "")
+		set(__RCMKR_FV1 "0")
+	endif()
+	if ("${__RCMKR_FV2}" STREQUAL "")
+		set(__RCMKR_FV2 "0")
+	endif()
+	if ("${__RCMKR_FV3}" STREQUAL "")
+		set(__RCMKR_FV3 "0")
+	endif()
+	if ("${__RCMKR_FV4}" STREQUAL "")
+		set(__RCMKR_FV4 "0")
+	endif()
+
 	PARSE_TAG("${_version_product}" __RCMKR_PV1 __RCMKR_PV2 __RCMKR_PV3 __RCMKR_PV4)
+	
+	if ("${__RCMKR_PV1}" STREQUAL "")
+		set(__RCMKR_PV1 "0")
+	endif()
+	if ("${__RCMKR_PV2}" STREQUAL "")
+		set(__RCMKR_PV2 "0")
+	endif()
+	if ("${__RCMKR_PV3}" STREQUAL "")
+		set(__RCMKR_PV3 "0")
+	endif()
+	if ("${__RCMKR_PV4}" STREQUAL "")
+		set(__RCMKR_PV4 "0")
+	endif()
 
 	# Read & configure the string resource
 	file(READ "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/versioninfo.rc.in" _stringrc)
@@ -80,6 +107,19 @@ function(MAKE_STRINGRC_VERSIONINFO
 	include (VersionTag)
 
 	PARSE_TAG("${_fileVersion}" __RCMKR_FV1 __RCMKR_FV2 __RCMKR_FV3 __RCMKR_FV4)
+
+	if ("${__RCMKR_FV1}" STREQUAL "")
+		set(__RCMKR_FV1 "0")
+	endif()
+	if ("${__RCMKR_FV2}" STREQUAL "")
+		set(__RCMKR_FV2 "0")
+	endif()
+	if ("${__RCMKR_FV3}" STREQUAL "")
+		set(__RCMKR_FV3 "0")
+	endif()
+	if ("${__RCMKR_FV4}" STREQUAL "")
+		set(__RCMKR_FV4 "0")
+	endif()
 
 	set(__RCMKR_PV1 "${__RCMKR_FV1}")
 	set(__RCMKR_PV2 "${__RCMKR_FV2}")
@@ -131,6 +171,19 @@ function(MAKE_STRINGRC_VERSIONINFO_SHORT
 	include (VersionTag)
 
 	PARSE_TAG("${${_project}_VERSION}" __RCMKR_FV1 __RCMKR_FV2 __RCMKR_FV3 __RCMKR_FV4)
+	
+	if ("${__RCMKR_FV1}" STREQUAL "")
+		set(__RCMKR_FV1 "0")
+	endif()
+	if ("${__RCMKR_FV2}" STREQUAL "")
+		set(__RCMKR_FV2 "0")
+	endif()
+	if ("${__RCMKR_FV3}" STREQUAL "")
+		set(__RCMKR_FV3 "0")
+	endif()
+	if ("${__RCMKR_FV4}" STREQUAL "")
+		set(__RCMKR_FV4 "0")
+	endif()
 
 	set(__RCMKR_PV1 "${__RCMKR_FV1}")
 	set(__RCMKR_PV2 "${__RCMKR_FV2}")
