@@ -168,9 +168,9 @@ function(MAKE_RESOURCE _out_file)
 	file(WRITE "${_out_file}" "1 TYPELIB \"${_out_filename}\"")
 	message(STATUS "MAKE_RESOURCE():  Created resource file \"${_out_file}\" using filename component \"${_out_filename}\"")
 	unset(_out_filename CACHE) # Delete cache variable to prevent potential pollution
-	
-	foreach (_stringrc IN LISTS "${ARGN}")
-		file(APPEND "${_out_file}" "${_stringrc}")
+
+	foreach (_stringrc IN LISTS ARGN)
+		file(APPEND "${_out_file}" "\n${_stringrc}")
 		message(STATUS "MAKE_RESOURCE():  Writing String Resource to File: \"${_stringrc}\"")
 	endforeach()
 	message(STATUS "MAKE_RESOURCE():  Resource file written successfully.")

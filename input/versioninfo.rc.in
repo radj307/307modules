@@ -22,7 +22,7 @@ BEGIN
             VALUE "LegalCopyright", "@_legalCopyright@"
             VALUE "OriginalFilename", "@_originalFilename@"
             VALUE "ProductName", "@_productName@"
-            VALUE "ProductVersion","@__RCMKR_PV1@, @__RCMKR_PV2@, @__RCMKR_PV3@, @__RCMKR_PV4"
+            VALUE "ProductVersion","@__RCMKR_PV1@, @__RCMKR_PV2@, @__RCMKR_PV3@, @__RCMKR_PV4@"
         END
     END
     BLOCK "VarFileInfo"
