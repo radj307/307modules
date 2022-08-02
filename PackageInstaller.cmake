@@ -52,26 +52,23 @@ function(CREATE_PACKAGE _target _compat_mode)
 	WRITE_VERSION_FILE(${_target} ${_compat_mode})
 endfunction()
 
-#### INSTALL_PACKAGE(<target> [[GENERATE] [COMPAT_MODE]]) ####
+#### INSTALL_PACKAGE(<target> [<NAMESPACE> <ns>] [[GENERATE] [COMPAT_MODE]]) ####
 # @brief				Creates an installation target for the specified package.
 #						If "GENERATE" is included as the 2nd argument, the function will call the `CREATE_PACKAGE` function first.
 #						If "GENERATE" was included, the package compatibility mode can be specified as the 3rd argument. If left blank, "SameMajorVersion" is used.
 # @param _target		The name of the target library. This must be a direct subdirectory of CMAKE_SOURCE_DIR, and the name of the library target.
+# @param ns				The name of the namespace to export with the target. This MUST end with '::' if you want the namespace specifier to be included!
 function(INSTALL_PACKAGE _target)
-	# Check optional arguments for "GENERATE"
-	if (${ARGC} GREATER 1)
-		list(GET ARGN 0 arg_raw)
-		string(TOUPPER ${arg_raw} arg)
-		if (${arg} STREQUAL "GENERATE")
-			# Check if a compatibility mode was specified
-			if (${ARGC} GREATER 2)
-				list(GET ARGN 1 compat_mode)
-			else() # Use "SameMajorVersion" by default
-				set(compat_mode "SameMajorVersion")
-			endif()
-			# Create packaging information
-			CREATE_PACKAGE("${_target}" "${compat_mode}")
+	set(options GENERATE)
+	set(oneValueArgs NAMESPACE COMPAT_MODE)
+	cmake_parse_arguments(PARSE_ARGV 1 INSTALL_PACKAGE "${options}" "${oneValueArgs}" "")
+
+	if (INSTALL_PACKAGE_GENERATE)
+		if ("${INSTALL_PACKAGE_COMPAT_MODE}" STREQUAL "")
+			set(INSTALL_PACKAGE_COMPAT_MODE "SameMajorVersion")
 		endif()
+
+		CREATE_PACKAGE("${_target}" "${INSTALL_PACKAGE_COMPAT_MODE}")
 	endif()
 
 	# Set "${_target}_INSTALL_DIR" to the target installation directory
@@ -108,7 +105,7 @@ function(INSTALL_PACKAGE _target)
 	install(
 		EXPORT "${_target}_Targets"
 		DESTINATION "${${_target}_CONFIG_INSTALL_DIR}"
-		NAMESPACE 307lib::
+		NAMESPACE "${INSTALL_PACKAGE_NAMESPACE}"
 		FILE "${_target}-targets.cmake"
 		COMPONENT "${_target}_Development"
 	)
