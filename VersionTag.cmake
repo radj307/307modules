@@ -82,7 +82,7 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 	IS_REPOSITORY("${_repository_dir}" _is_repo)
 	if (_is_repo)
 		GET_TAG_FROM("${_repository_dir}" _tag)
-		if ("${_tag}" STREQUAL "" AND DEFINED ENV{${_project_name}_VERSION})
+		if ("${_tag}" STREQUAL "" AND DEFINED "ENV{${_project_name}_VERSION}")
 			message(WARNING "Using fallback version number from environment: \"$ENV{${_project_name}_VERSION}\"")
 			set(_tag "$ENV{${_project_name}_VERSION}" CACHE INTERNAL "Fallback version number")
 		endif()
@@ -105,11 +105,12 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 		if ("${${_project_name}_VERSION_MAJOR}" STREQUAL "" OR "${${_project_name}_VERSION_MINOR}" STREQUAL "" OR "${${_project_name}_VERSION_PATCH}" STREQUAL "")
 			message(
 				FATAL_ERROR
-				"               ########### FATAL ERROR ###########\n"
-				" Function:     GET_VERSION()\n"
-				" Reason:       Failed to retrieve a valid 3-part SEMVER version number!\n"
-				" Repository:   \"${_repository_dir}\""
-				" Git Tag:      \"${_tag}\""
+				"                  ########### FATAL ERROR ###########\n"
+				" Function:        GET_VERSION()\n"
+				" Reason:          Failed to retrieve a valid 3-part SEMVER version number from GIT TAG: \"${_tag}\"!\n"
+				" Repository Dir:  \"${_repository_dir}\"\n"
+				"                  You can resolve this by specifying a default version number-\n"
+				"                  -as an environment variable named \"${_project_name}_VERSION\""
 			)
 		endif()
 		set( # Set the CMake-compatible version number

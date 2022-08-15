@@ -91,7 +91,7 @@ endfunction(MAKE_STRINGRC_VERSIONINFO_LONG)
 #### MAKE_STRINGRC_VERSIONINFO() ####
 # @brief
 function(MAKE_STRINGRC_VERSIONINFO
-	_out_string
+	 _out_string
 	_fileVersion
 	_legalCopyright
 	_companyName
