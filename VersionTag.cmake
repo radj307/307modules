@@ -68,13 +68,14 @@ endfunction()
 #	REPOSITORY		The repository directory to use.
 #	PROJECT			The prefix name to use for all output variables.
 # OUTPUTS:
-#	${PROJECT}_VERSION
-#	${PROJECT}_VERSION_MAJOR
-#	${PROJECT}_VERSION_MINOR
-#	${PROJECT}_VERSION_PATCH
-#	${PROJECT}_VERSION_EXTRA0
-#	${PROJECT}_VERSION_EXTRA...
-#	${PROJECT}_VERSION_EXTRA9
+#	${PROJECT}_VERSION				3-part semver version number.
+#	${PROJECT}_VERSION_MAJOR		The 1st part of the semver tag.
+#	${PROJECT}_VERSION_MINOR		The 2nd part of the semver tag.
+#	${PROJECT}_VERSION_PATCH		The 3rd part of the semver tag.
+#	${PROJECT}_VERSION_EXTRA0		Extra parts of the semver tag.
+#	${PROJECT}_VERSION_EXTRA...		Extra parts of the semver tag.
+#	${PROJECT}_VERSION_EXTRA9		Extra parts of the semver tag.
+#	${PROJECT}_VERSION_EXTENDED		The exact tag retrieved from git.
 function(GET_VERSION_TAG _repository_dir _project_name)
 	message(STATUS "GET_VERSION():  REPOSITORY = \"${_repository_dir}\"")
 	message(STATUS "GET_VERSION():  PROJECT    = \"${_project_name}\"")
@@ -86,6 +87,7 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 			message(WARNING "Using fallback version number from environment: \"$ENV{${_project_name}_VERSION}\"")
 			set(_tag "$ENV{${_project_name}_VERSION}" CACHE INTERNAL "Fallback version number")
 		endif()
+		set("${_project_name}_VERSION_EXTENDED" "${_tag}" CACHE INTERNAL "The exact tag retrieved from the git repository.")
 		PARSE_TAG(
 			"${_tag}"
 			"${_project_name}_VERSION_MAJOR"
