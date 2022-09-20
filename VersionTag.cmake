@@ -204,5 +204,7 @@ function(MAKE_VERSION_HEADER _out_header _project_name _version)
 	file(REMOVE "${_out_header}")
 
 	# Use configure_file to create the output file from a template
+	# NOTE:
+	#  The configure_file function creates missing parent directories, so don't do that externally!
 	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${_out_header}" USE_SOURCE_PERMISSIONS @ONLY)
 endfunction()
