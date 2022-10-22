@@ -62,6 +62,54 @@ function(PARSE_TAG _tag)
 	endforeach()
 endfunction()
 
+# GET_VERSION_TAG(<PROJECT>)
+#	Retrieve the "${PROJECT}_VERSION" environment variable and parse it into a usable version number.
+#   Output is set via CACHE INTERNAL and is available anywhere.
+# PARAMETERS:
+#	REPOSITORY		The repository directory to use.
+#	PROJECT			The prefix name to use for all output variables.
+# OUTPUTS:
+#	${PROJECT}_VERSION				3-part semver version number.
+#	${PROJECT}_VERSION_MAJOR		The 1st part of the semver tag.
+#	${PROJECT}_VERSION_MINOR		The 2nd part of the semver tag.
+#	${PROJECT}_VERSION_PATCH		The 3rd part of the semver tag.
+#	${PROJECT}_VERSION_EXTRA0		Extra parts of the semver tag.
+#	${PROJECT}_VERSION_EXTRA...		Extra parts of the semver tag.
+#	${PROJECT}_VERSION_EXTRA9		Extra parts of the semver tag.
+#	${PROJECT}_VERSION_EXTENDED		The exact tag retrieved from git.
+function(GET_VERSION_ENV _project_name)
+	if (DEFINED "ENV{${_project_name}_VERSION}")
+		set(_value "$ENV{${_project_name}_VERSION}")
+
+		message(STATUS "GET_VERSION_ENV():  \"${_project_name}_VERSION\" = \"${_value}\"")
+
+		PARSE_TAG(
+			"${_value}"
+			"${_project_name}_VERSION_MAJOR"
+			"${_project_name}_VERSION_MINOR"
+			"${_project_name}_VERSION_PATCH"
+			"${_project_name}_VERSION_EXTRA0"
+			"${_project_name}_VERSION_EXTRA1"
+			"${_project_name}_VERSION_EXTRA2"
+			"${_project_name}_VERSION_EXTRA3"
+			"${_project_name}_VERSION_EXTRA4"
+			"${_project_name}_VERSION_EXTRA5"
+			"${_project_name}_VERSION_EXTRA6"
+			"${_project_name}_VERSION_EXTRA7"
+			"${_project_name}_VERSION_EXTRA8"
+			"${_project_name}_VERSION_EXTRA9"
+		)
+		set( # Set the CMake-compatible version number
+			"${_project_name}_VERSION" 
+			"${${_project_name}_VERSION_MAJOR}.${${_project_name}_VERSION_MINOR}.${${_project_name}_VERSION_PATCH}" 
+			CACHE INTERNAL
+			"${_project_name} version number parsed from git repository located at \"${_repository_dir}\"."
+		)
+	else()
+		message(WARNING "GET_VERSION_ENV():  No environment variable named '${_project_name}_VERSION' was found, a default version number is not available!")
+	endif()
+endfunction()
+
 # GET_VERSION_TAG(<REPOSITORY> <PROJECT>)
 #	Retrieve the latest git tag and parse it into a usable version number.
 # PARAMETERS:
@@ -77,14 +125,14 @@ endfunction()
 #	${PROJECT}_VERSION_EXTRA9		Extra parts of the semver tag.
 #	${PROJECT}_VERSION_EXTENDED		The exact tag retrieved from git.
 function(GET_VERSION_TAG _repository_dir _project_name)
-	message(STATUS "GET_VERSION():  REPOSITORY = \"${_repository_dir}\"")
-	message(STATUS "GET_VERSION():  PROJECT    = \"${_project_name}\"")
+	message(STATUS "GET_VERSION_TAG():  REPOSITORY = \"${_repository_dir}\"")
+	message(STATUS "GET_VERSION_TAG():  PROJECT    = \"${_project_name}\"")
 
 	IS_REPOSITORY("${_repository_dir}" _is_repo)
-	if (_is_repo)
+	if (_is_repo) # if the target dir is a git repository:
 		GET_TAG_FROM("${_repository_dir}" _tag)
-		if ("${_tag}" STREQUAL "" AND DEFINED "ENV{${_project_name}_VERSION}")
-			message(WARNING "Using fallback version number from environment: \"$ENV{${_project_name}_VERSION}\"")
+		if ("${_tag}" STREQUAL "")
+			message(WARNING "GET_VERSION_TAG():  Using fallback version number from environment: \"$ENV{${_project_name}_VERSION}\"")
 			set(_tag "$ENV{${_project_name}_VERSION}" CACHE INTERNAL "Fallback version number")
 		endif()
 		set("${_project_name}_VERSION_EXTENDED" "${_tag}" CACHE INTERNAL "The exact tag retrieved from the git repository.")
@@ -104,34 +152,54 @@ function(GET_VERSION_TAG _repository_dir _project_name)
 			"${_project_name}_VERSION_EXTRA8"
 			"${_project_name}_VERSION_EXTRA9"
 		)
-		if ("${${_project_name}_VERSION_MAJOR}" STREQUAL "" OR "${${_project_name}_VERSION_MINOR}" STREQUAL "" OR "${${_project_name}_VERSION_PATCH}" STREQUAL "")
+
+		# Valid version number:
+		if("${${_project_name}_VERSION_MAJOR}" MATCHES "[0-9]+" AND "${${_project_name}_VERSION_MINOR}" MATCHES "[0-9]+" AND "${${_project_name}_VERSION_PATCH}" MATCHES "[0-9]+")
+			set( # Set the CMake-compatible version number
+				"${_project_name}_VERSION" 
+				"${${_project_name}_VERSION_MAJOR}.${${_project_name}_VERSION_MINOR}.${${_project_name}_VERSION_PATCH}" 
+				CACHE INTERNAL
+				"${_project_name} version number parsed from git repository located at \"${_repository_dir}\"."
+			)
+
+		# Invalid version number, BUT environment variable IS defined:
+		elseif(DEFINED "ENV{${_project_name}_VERSION}")
+			message(WARNING "GET_VERSION_TAG():  Parsing git tag \"${_tag}\" failed to produce a usable version number!")
+			message(STATUS "GET_VERSION_TAG():  Falling back to environment variable \"${_project_name}_VERSION\"")
+			GET_VERSION_ENV("${_project_name}")
+
+		# Invalid version number, environment variable is NOT defined:
+		else()
 			message(
 				FATAL_ERROR
 				"                  ########### FATAL ERROR ###########\n"
-				" Function:        GET_VERSION()\n"
+				" Function:        GET_VERSION_TAG()\n"
 				" Reason:          Failed to retrieve a valid 3-part SEMVER version number from GIT TAG: \"${_tag}\"!\n"
 				" Repository Dir:  \"${_repository_dir}\"\n"
 				"                  You can resolve this by specifying a default version number-\n"
 				"                  -as an environment variable named \"${_project_name}_VERSION\""
 			)
 		endif()
-		set( # Set the CMake-compatible version number
-			"${_project_name}_VERSION" 
-			"${${_project_name}_VERSION_MAJOR}.${${_project_name}_VERSION_MINOR}.${${_project_name}_VERSION_PATCH}" 
-			CACHE INTERNAL
-			"${_project_name} version number parsed from git repository located at \"${_repository_dir}\"."
-		)
-		message(STATUS "GET_VERSION():  \$\{${_project_name}_VERSION\} = ${${_project_name}_VERSION}")
-		return()
+
+		message(STATUS "GET_VERSION_TAG():  \$\{${_project_name}_VERSION\} = ${${_project_name}_VERSION}")
+
+	# This is NOT a git repository, but a default version number is available:
+	elseif(DEFINED "ENV{${_project_name}_VERSION}")
+		message(STATUS "GET_VERSION_TAG():  Falling back to environment variable \"${_project_name}_VERSION\"")
+		GET_VERSION_ENV("${_project_name}")
+
+	# This is NOT a git repository & no default version is set:
 	else()
-		if(DEFINED ENV{${_project_name}_VERSION}) # If a fallback version number is available from the environment, use that
-			message(WARNING "GET_VERSION():  Directory is not a git repository, using fallback version \"$ENV{${_project_name}_VERSION}\"")
-			set("${_project_name}_VERSION" "$ENV{${_project_name}_VERSION}" CACHE INTERNAL "Fallback version number for project \"${_project_name}\"")
-			return()
-		else()
-			message(FATAL_ERROR "GET_VERSION():  Directory is not a git repository and no fallback version was set!")
-			return()
-		endif()
+		message(
+			FATAL_ERROR
+			"                  ########### FATAL ERROR ###########\n"
+			" Function:        GET_VERSION_TAG()\n"
+			" Reason:          Failed to retrieve a valid 3-part SEMVER version number from GIT TAG: \"${_tag}\"!\n"
+			" Repository Dir:  \"${_repository_dir}\"\n"
+			"                  You can resolve this by specifying a default version number-\n"
+			"                  -as an environment variable named \"${_project_name}_VERSION\""
+		)
+
 	endif()
 endfunction()
 
