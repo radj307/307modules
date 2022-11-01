@@ -5,10 +5,9 @@
 #define @IN_PROJECT@_VERSION_MAJOR			@IN_MAJOR@
 #define @IN_PROJECT@_VERSION_MINOR			@IN_MINOR@
 #define @IN_PROJECT@_VERSION_PATCH			@IN_PATCH@
-#define @IN_PROJECT@_VERSION_EXTRA			@IN_EXTRA@
 
 // Current @IN_PROJECT@ version number as a string.
 #define @IN_PROJECT@_VERSION				"@IN_MAJOR@.@IN_MINOR@.@IN_PATCH@"
 
 // Current @IN_PROJECT@ extended version number as a string.
-#define @IN_PROJECT@_VERSION_EXTENDED		"@IN_MAJOR@.@IN_MINOR@.@IN_PATCH@@SEP_EXTRA@@IN_EXTRA@"
+#define @IN_PROJECT@_VERSION_EXTENDED		"@IN_EXTENDED@"

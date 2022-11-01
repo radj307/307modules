@@ -46,13 +46,14 @@ endmacro()
 function(PARSE_TAG _tag)
 	message(STATUS "PARSE_TAG():  TAG = \"${_tag}\"")
 	string(REGEX MATCHALL
-		"[0-9A-Za-z]+"
+		"[0-9]+|[A-Za-z]+"
 		_groups
 		"${_tag}"
 	)
+	list(LENGTH ARGN _argn_length)
 	math(EXPR index "0")
 	foreach(_cap IN LISTS _groups)
-		if(${ARGC} GREATER_EQUAL ${index})
+		if(${index} LESS ${ARGC} AND ${index} LESS ${_argn_length})
 			list(GET ARGN ${index} _arg)
 			set(${_arg} "${_cap}")
 			set(${_arg} "${${_arg}}" CACHE INTERNAL "Version Tag Capture Group ${index}")
@@ -258,15 +259,8 @@ function(MAKE_VERSION_HEADER _out_header _project_name _version)
 		IN_MAJOR
 		IN_MINOR
 		IN_PATCH
-		IN_EXTRA
 	)
-
-	# Set the separator character if necessary
-	if("${IN_EXTRA}" STREQUAL "")
-		set(SEP_EXTRA "")
-	else()
-		set(SEP_EXTRA "-")
-	endif()
+	set(IN_EXTENDED "${_version}")
 
 	# Remove the current version header if it exists
 	file(REMOVE "${_out_header}")
