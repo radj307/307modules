@@ -10,4 +10,4 @@
 #define @IN_PROJECT@_COPYRIGHT_HOLDER	"@IN_HOLDER@"
 
 // The full copyright notice as a string.
-#define @IN_PROJECT@_COPYRIGHT			"Copyright © @IN_YEAR@ by @IN_HOLDER@"
+#define @IN_PROJECT@_COPYRIGHT			"@IN_NOTICE@"

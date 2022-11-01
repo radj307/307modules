@@ -242,18 +242,20 @@ endfunction(MAKE_RESOURCE)
 #	${_project_name}_COPYRIGHT_HOLDER	The owner of the copyright.
 #	${_project_name}_COPYRIGHT			The full copyright notice as a string.
 function(MAKE_COPYRIGHT_HEADER _out_header _project_name _copyright_year _copyright_holder)
+	set(IN_PROJECT "${_project_name}" CACHE INTERNAL "")
+	set(IN_YEAR "${_copyright_year}" CACHE INTERNAL "")
+	set(IN_HOLDER "${_copyright_holder}" CACHE INTERNAL "")
+	set(IN_NOTICE "Copyright © ${_copyright_year} by ${_copyright_holder}")
+
 	message(STATUS
-		" MAKE_COPYRIGHT_HEADER():	_out_header			= \"${_out_header}\""
-		" MAKE_COPYRIGHT_HEADER():	_project_name		= \"${_project_name}\""
-		" MAKE_COPYRIGHT_HEADER():	_copyright_year		= \"${_copyright_year}\""
-		" MAKE_COPYRIGHT_HEADER():	_copyright_holder	= \"${_copyright_holder}\""
+		" MAKE_COPYRIGHT_HEADER():	_out_header			= \"${_out_header}\"\n"
+		" MAKE_COPYRIGHT_HEADER():	_project_name		= \"${_project_name}\"\n"
+		" MAKE_COPYRIGHT_HEADER():	_copyright_year		= \"${_copyright_year}\"\n"
+		" MAKE_COPYRIGHT_HEADER():	_copyright_holder	= \"${_copyright_holder}\"\n"
+		" MAKE_COPYRIGHT_HEADER():	Copyright Notice	= \"${IN_NOTICE}\""
 	)
 
 	file(REMOVE "${_out_header}")
-
-	set(IN_PROJECT "${_project_name}" CACHE INTERNAL)
-	set(IN_YEAR "${_copyright_year}" CACHE INTERNAL)
-	set(IN_HOLDER "${_copyright_holder}" CACHE INTERNAL)
 
 	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/copyright.h.in" "${_out_header}" USE_SOURCE_PERMISSIONS @ONLY)
 endfunction()
