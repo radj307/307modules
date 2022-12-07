@@ -162,6 +162,10 @@ function(MAKE_VERSION_HEADER_LONG _out_header _project_name IN_MAJOR IN_MINOR IN
 
 	# Remove the current version header if it exists
 	file(REMOVE "${_out_header}")
+	
+	# Create any missing parent directories:
+	cmake_path(GET _out_header PARENT_PATH _out_directory)
+	file(MAKE_DIRECTORY "${_out_directory}")
 
 	# Use configure_file to create the output file from a template
 	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${_out_header}" USE_SOURCE_PERMISSIONS @ONLY)
@@ -200,6 +204,10 @@ function(MAKE_VERSION_HEADER _out_header _project_name _version)
 
 	# Remove the current version header if it exists
 	file(REMOVE "${_out_header}")
+
+	# Create any missing parent directories:
+	cmake_path(GET _out_header PARENT_PATH _make_version_header_out_header_directory)
+	file(MAKE_DIRECTORY "${_make_version_header_out_header_directory}")
 
 	# Use configure_file to create the output file from a template
 	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/version.h.in" "${_out_header}" USE_SOURCE_PERMISSIONS @ONLY)
