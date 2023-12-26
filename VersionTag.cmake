@@ -264,7 +264,7 @@ function(MAKE_VERSION_HEADER _out_header _project_name _version)
 		IN_MINOR
 		IN_PATCH
 	)
-	set(IN_EXTENDED "${_version}")
+	set(IN_EXTENDED "${_version}" CACHE INTERNAL "")
 
 	# Remove the current version header if it exists
 	file(REMOVE "${_out_header}")
