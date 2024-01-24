@@ -171,6 +171,6 @@ function(MAKE_COPYRIGHT_HEADER _out_header _project_name _copyright_year _copyri
 	cmake_path(GET _out_header PARENT_PATH _make_version_header_out_header_directory)
 	file(MAKE_DIRECTORY "${_make_version_header_out_header_directory}")
 
-	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/copyright_long.h.in" "${_out_header}" USE_SOURCE_PERMISSIONS @ONLY)
+	configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/input/copyright.h.in" "${_out_header}" USE_SOURCE_PERMISSIONS @ONLY)
 endfunction()
 
